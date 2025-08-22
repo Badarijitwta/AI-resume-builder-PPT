@@ -38,17 +38,3 @@ This is a **single-page application** intended to be hosted on **Vercel**.
 - **Google Fonts (Inter)** – Professional typography  
 
 ---
-
-## 🚀 Deployment
-
-This project is set up as a **static site** and can be deployed easily on [Vercel](https://vercel.com/):
-
-1. Fork or clone this repo  
-2. Push it to your own GitHub repository  
-3. Connect your repo to Vercel  
-4. Deploy — Vercel will automatically detect `index.html` as the entry point  
-
----
-
-## 📂 Project Structure
-
