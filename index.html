@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Resume Design Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Chosen Palette: Professional Neutrals -->
+    <!-- Application Structure Plan: The application is structured as a single-page interactive guide. It starts with a brief intro, then moves to the core "Good vs. Bad Resume" interactive comparison. This side-by-side view with clickable hotspots allows users to actively explore and learn the differences. Following this central feature, tabbed sections break down key concepts (Foundations, Anatomy, Pitfalls, AI Tools) into digestible modules. This non-linear, thematic structure is more engaging than a long report, encouraging exploration and providing practical tools like the ATS chart and AI prompt generator. The user flow is designed to be intuitive, guiding the user from understanding the 'why' to learning the 'how' and applying it with modern tools. -->
+    <!-- Visualization & Content Choices: 1. ATS Rejection Rate (Report Info: 75% rejection statistic -> Goal: Inform/Impact -> Viz: Donut Chart -> Interaction: Hover tooltips -> Justification: Visually demonstrates the critical importance of ATS optimization, making the statistic memorable. -> Library: Chart.js). 2. Good vs. Bad Resume (Report Info: All examples of good/bad practices -> Goal: Compare/Educate -> Viz: Styled HTML/CSS mockups -> Interaction: Clickable hotspots revealing explanatory modals -> Justification: The core interactive element, turning passive reading into active learning and direct comparison. -> Method: HTML/CSS/JS). 3. AI Prompt Generator (Report Info: List of AI prompts -> Goal: Organize/Provide Tool -> Viz: Dropdown menu and text area -> Interaction: User selects goal, JS displays corresponding, copyable prompt -> Justification: Transforms a static list into a practical, usable tool. -> Method: HTML/CSS/JS). -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f8f7f4;
+        color: #333333;
+      }
+      .nav-button {
+        transition: all 0.3s ease;
+        border-bottom: 2px solid transparent;
+      }
+      .nav-button.active,
+      .nav-button:hover {
+        color: #5b7c99;
+        border-bottom-color: #5b7c99;
+      }
+      .hotspot {
+        position: absolute;
+        border: 2px dashed transparent;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .hotspot:hover {
+        border-color: #5b7c99;
+        background-color: rgba(91, 124, 153, 0.1);
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+        animation: fadeIn 0.3s;
+      }
+      .modal-content {
+        animation: slideIn 0.3s;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateY(-30px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+      .chart-container {
+        position: relative;
+        width: 100%;
+        max-width: 350px;
+        margin-left: auto;
+        margin-right: auto;
+        height: 350px;
+      }
+    </style>
+  </head>
+  <body class="antialiased">
+    <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <h1 class="text-2xl font-bold text-gray-800">Resume Design Guide</h1>
+          <nav class="hidden md:flex space-x-8">
+            <button
+              onclick="scrollToSection('interactive-comparison')"
+              class="nav-button text-gray-600 font-medium pb-1"
+            >
+              Good vs. Bad
+            </button>
+            <button
+              onclick="scrollToSection('deep-dive')"
+              class="nav-button text-gray-600 font-medium pb-1"
+            >
+              Deep Dive
+            </button>
+            <button
+              onclick="scrollToSection('ai-tools')"
+              class="nav-button text-gray-600 font-medium pb-1"
+            >
+              AI Tools
+            </button>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <section class="text-center mb-16">
+        <h2 class="text-4xl font-extrabold text-gray-900 mb-4">
+          Crafting Your First Impression
+        </h2>
+        <p class="max-w-3xl mx-auto text-lg text-gray-600">
+          Welcome! As freshers from diverse backgrounds, your resume is your
+          single most important marketing tool. It's not just a history of your
+          work; it's the key to unlocking interviews. This guide will help you
+          build a resume that stands out for all the right reasons.
+        </p>
+      </section>
+
+      <section id="interactive-comparison" class="mb-20">
+        <div class="text-center mb-12">
+          <h3 class="text-3xl font-bold text-gray-900">
+            Good vs. Bad: An Interactive Comparison
+          </h3>
+          <p class="mt-2 text-md text-gray-600">
+            Click on the highlighted sections of each resume to learn why they
+            work—or why they don't.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          <!-- Bad Resume -->
+          <div class="bg-white p-6 rounded-lg shadow-lg relative">
+            <h4 class="text-2xl font-bold text-center mb-4 text-red-600">
+              The "Don't" Resume
+            </h4>
+            <div
+              class="border p-4 rounded-md font-serif text-sm relative bg-red-50"
+            >
+              <div
+                class="hotspot"
+                style="top: 1rem; left: 1rem; right: 1rem; height: 4rem"
+                onclick="showModal('bad_header')"
+              ></div>
+              <div class="text-center border-b pb-2 mb-2">
+                <h5 class="text-xl font-bold">Richard Roe</h5>
+                <p>123 Main Street, Anytown, USA 12345</p>
+                <p>richard.roe@aol.com | (555) 123-4567</p>
+                <img
+                  src="https://placehold.co/80x80/cccccc/000000?text=Photo"
+                  class="mx-auto rounded-full mt-2"
+                  alt="Photo of Richard Roe"
+                />
+              </div>
+
+              <div
+                class="hotspot"
+                style="top: 8rem; left: 1rem; right: 1rem; height: 3rem"
+                onclick="showModal('bad_objective')"
+              ></div>
+              <div class="mb-4">
+                <h6 class="font-bold text-md mb-1">Objective</h6>
+                <p>
+                  A hardworking professional looking for a challenging role in a
+                  good company where I can utilize my skills and grow.
+                </p>
+              </div>
+
+              <div
+                class="hotspot"
+                style="top: 12.5rem; left: 1rem; right: 1rem; height: 10rem"
+                onclick="showModal('bad_experience')"
+              ></div>
+              <div class="mb-4">
+                <h6 class="font-bold text-md mb-1">Experience</h6>
+                <p class="font-semibold">Retail Associate - Big Box Store</p>
+                <p class="text-xs text-gray-600">2022-2023</p>
+                <ul class="list-disc list-inside ml-2">
+                  <li>Responsible for customer service.</li>
+                  <li>Handled cash register.</li>
+                  <li>Stocked shelves.</li>
+                  <li>I worked on the team for inventory.</li>
+                </ul>
+              </div>
+
+              <div
+                class="hotspot"
+                style="top: 24rem; left: 1rem; right: 1rem; height: 3.5rem"
+                onclick="showModal('bad_education')"
+              ></div>
+              <div class="mb-4">
+                <h6 class="font-bold text-md mb-1">Education</h6>
+                <p>Anytown High School</p>
+                <p>University</p>
+              </div>
+
+              <div
+                class="hotspot"
+                style="top: 29rem; left: 1rem; right: 1rem; height: 3.5rem"
+                onclick="showModal('bad_skills')"
+              ></div>
+              <div>
+                <h6 class="font-bold text-md mb-1">Skills</h6>
+                <p>Microsoft Word, Teamwork, Hardworking, Problem Solving</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Good Resume -->
+          <div class="bg-white p-6 rounded-lg shadow-lg relative">
+            <h4 class="text-2xl font-bold text-center mb-4 text-green-600">
+              The "Do" Resume
+            </h4>
+            <div class="border p-4 rounded-md text-sm relative bg-green-50">
+              <div
+                class="hotspot"
+                style="top: 1rem; left: 1rem; right: 1rem; height: 3rem"
+                onclick="showModal('good_header')"
+              ></div>
+              <div class="text-center border-b pb-2 mb-2">
+                <h5 class="text-2xl font-bold">Jane Doe</h5>
+                <p>
+                  Bengaluru, India | 555-123-4567 | jane.doe@email.com |
+                  linkedin.com/in/janedoe
+                </p>
+              </div>
+
+              <div
+                class="hotspot"
+                style="top: 5.5rem; left: 1rem; right: 1rem; height: 4.5rem"
+                onclick="showModal('good_objective')"
+              ></div>
+              <div class="mb-4">
+                <h6 class="font-bold text-md mb-1 uppercase tracking-wider">
+                  Objective
+                </h6>
+                <p>
+                  A recent PGDM graduate with a specialization in Marketing,
+                  seeking to leverage proven skills in market research, data
+                  analysis, and digital campaign management to contribute to the
+                  Marketing Associate role at Innovate Corp. Eager to apply
+                  academic knowledge and internship experience to drive brand
+                  growth.
+                </p>
+              </div>
+
+              <div
+                class="hotspot"
+                style="top: 11.5rem; left: 1rem; right: 1rem; height: 6rem"
+                onclick="showModal('good_education')"
+              ></div>
+              <div class="mb-4">
+                <h6 class="font-bold text-md mb-1 uppercase tracking-wider">
+                  Education
+                </h6>
+                <div class="flex justify-between items-start">
+                  <p class="font-semibold">
+                    Post Graduate Diploma in Management (PGDM), Marketing
+                  </p>
+                  <p class="text-xs font-medium">Expected May 2025</p>
+                </div>
+                <p class="italic">Premier Business School, Mysuru, India</p>
+                <ul class="list-disc list-inside ml-2 mt-1">
+                  <li>GPA: 3.8/4.0; Dean's List (3 semesters)</li>
+                  <li>
+                    Relevant Coursework: Digital Marketing, Consumer Behavior,
+                    Market Analytics
+                  </li>
+                </ul>
+              </div>
+
+              <div
+                class="hotspot"
+                style="top: 19rem; left: 1rem; right: 1rem; height: 8rem"
+                onclick="showModal('good_experience')"
+              ></div>
+              <div class="mb-4">
+                <h6 class="font-bold text-md mb-1 uppercase tracking-wider">
+                  Experience
+                </h6>
+                <div class="flex justify-between items-start">
+                  <p class="font-semibold">Marketing Intern</p>
+                  <p class="text-xs font-medium">Jun 2024 – Aug 2024</p>
+                </div>
+                <p class="italic">Tech Solutions Ltd., Bengaluru, India</p>
+                <ul class="list-disc list-inside ml-2 mt-1">
+                  <li>
+                    Analyzed market trends and competitor strategies,
+                    contributing to a report that informed the Q3 marketing
+                    plan.
+                  </li>
+                  <li>
+                    Assisted in managing social media accounts, resulting in a
+                    15% increase in engagement on LinkedIn.
+                  </li>
+                  <li>
+                    Developed and executed a targeted email campaign that
+                    achieved a 25% open rate, 5% above the industry average.
+                  </li>
+                </ul>
+              </div>
+
+              <div
+                class="hotspot"
+                style="top: 28.5rem; left: 1rem; right: 1rem; height: 5rem"
+                onclick="showModal('good_skills')"
+              ></div>
+              <div>
+                <h6 class="font-bold text-md mb-1 uppercase tracking-wider">
+                  Skills
+                </h6>
+                <p>
+                  <span class="font-semibold">Technical:</span> Google
+                  Analytics, HubSpot, SEMrush, Microsoft Excel (Pivot Tables,
+                  VLOOKUP)
+                </p>
+                <p>
+                  <span class="font-semibold">Languages:</span> English
+                  (Fluent), Hindi (Native), Kannada (Conversational)
+                </p>
+                <p>
+                  <span class="font-semibold">Soft Skills:</span> Data Analysis,
+                  Team Collaboration, Project Management
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="deep-dive" class="mb-20">
+        <div class="text-center mb-12">
+          <h3 class="text-3xl font-bold text-gray-900">
+            Deep Dive: The Core Components
+          </h3>
+          <p class="mt-2 text-md text-gray-600">
+            Let's break down the essential building blocks of a winning resume.
+          </p>
+        </div>
+
+        <div class="border-b border-gray-200 mb-6">
+          <nav class="-mb-px flex space-x-6 justify-center" aria-label="Tabs">
+            <button
+              class="nav-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm active"
+              onclick="openTab(event, 'foundations')"
+            >
+              Foundations
+            </button>
+            <button
+              class="nav-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+              onclick="openTab(event, 'anatomy')"
+            >
+              Anatomy
+            </button>
+            <button
+              class="nav-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+              onclick="openTab(event, 'pitfalls')"
+            >
+              Pitfalls
+            </button>
+          </nav>
+        </div>
+
+        <div id="foundations" class="tab-content active">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+              <h4 class="text-2xl font-semibold mb-4">
+                Why Your Resume Matters & The ATS Gatekeeper
+              </h4>
+              <p class="mb-4 text-gray-700">
+                Your resume is your first test. Before you speak to anyone, this
+                document must prove you're worth an interview. However, it often
+                has to pass a robot first: the Applicant Tracking System (ATS).
+              </p>
+              <p class="mb-4 text-gray-700">
+                ATS software scans your resume for keywords from the job
+                description. If it can't read your resume or doesn't find the
+                right words, your application is rejected before a human ever
+                sees it.
+              </p>
+              <p class="font-semibold text-gray-800">
+                This is why simple, clean formatting and tailoring your resume
+                with keywords from the job description are not just
+                suggestions—they are essential for survival.
+              </p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+              <h5 class="text-center font-bold text-lg mb-4">
+                The ATS Hurdle: Fate of 100 Resumes
+              </h5>
+              <div class="chart-container">
+                <canvas id="atsChart"></canvas>
+              </div>
+              <p class="text-center text-sm text-gray-600 mt-4">
+                An estimated 75% of resumes are filtered out by ATS before
+                reaching a human recruiter. Make sure yours is in the top 25%.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div id="anatomy" class="tab-content">
+          <h4 class="text-2xl font-semibold mb-6 text-center">
+            The Anatomy of a Great Resume
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+              <h5 class="font-bold text-lg mb-2">1. Contact Info</h5>
+              <p class="text-gray-700">
+                Clean, professional, and easy to find. Include your name, city,
+                phone, professional email, and a link to your LinkedIn profile.
+                Skip the full street address and unprofessional email names.
+              </p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+              <h5 class="font-bold text-lg mb-2">2. Objective/Summary</h5>
+              <p class="text-gray-700">
+                For freshers, a tailored Objective is key. State the role you're
+                applying for, the company, and how your key skills (from your
+                PGDM) will help them. Avoid generic phrases.
+              </p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+              <h5 class="font-bold text-lg mb-2">3. Education</h5>
+              <p class="text-gray-700">
+                Place this section prominently. Include your degree (PGDM),
+                university, expected graduation date, and GPA (if 3.0+).
+                Highlight relevant coursework and academic honors.
+              </p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+              <h5 class="font-bold text-lg mb-2">4. Experience</h5>
+              <p class="text-gray-700">
+                Use this for internships, projects, and even volunteer work. Use
+                action verbs and quantify your achievements. Instead of "did
+                task," say "Achieved X result by doing Y task."
+              </p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+              <h5 class="font-bold text-lg mb-2">5. Skills</h5>
+              <p class="text-gray-700">
+                Create a dedicated section for hard skills (software, tools),
+                languages, and key soft skills. Pull these directly from the job
+                description to pass the ATS scan.
+              </p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+              <h5 class="font-bold text-lg mb-2">6. Optional Sections</h5>
+              <p class="text-gray-700">
+                Awards, certifications, and leadership roles in clubs can be
+                powerful additions for freshers to demonstrate initiative and
+                responsibility beyond academics.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div id="pitfalls" class="tab-content">
+          <h4 class="text-2xl font-semibold mb-6 text-center">
+            Common Resume Pitfalls to Avoid
+          </h4>
+          <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+              <table class="min-w-full">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th
+                      class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Mistake
+                    </th>
+                    <th
+                      class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Why It's Bad & How to Fix It
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-medium text-red-600">
+                      Typos & Errors
+                    </td>
+                    <td class="px-6 py-4 text-gray-700">
+                      Signals carelessness. Proofread multiple times and have a
+                      friend review it.
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-medium text-red-600">
+                      Overly Fancy Design
+                    </td>
+                    <td class="px-6 py-4 text-gray-700">
+                      Complex templates (like many on Canva) with columns,
+                      graphics, or text boxes confuse ATS. Stick to a simple,
+                      single-column format.
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-medium text-red-600">
+                      Generic Language
+                    </td>
+                    <td class="px-6 py-4 text-gray-700">
+                      "Hardworking" means nothing. Use action verbs and quantify
+                      your results (e.g., "Increased engagement by 15%").
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-medium text-red-600">
+                      Including a Photo
+                    </td>
+                    <td class="px-6 py-4 text-gray-700">
+                      Can introduce bias and is not standard practice in many
+                      countries. It also causes issues with ATS. Remove it.
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-medium text-red-600">
+                      Irrelevant Info
+                    </td>
+                    <td class="px-6 py-4 text-gray-700">
+                      Remove your full address, hobbies, and the phrase
+                      "References available upon request." Use that space for
+                      achievements.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="ai-tools" class="bg-white p-8 rounded-lg shadow-lg">
+        <div class="text-center mb-8">
+          <h3 class="text-3xl font-bold text-gray-900">
+            Leverage AI: Your Resume Co-Pilot
+          </h3>
+          <p class="mt-2 text-md text-gray-600 max-w-3xl mx-auto">
+            AI can be a powerful tool for tailoring your resume. Use it to
+            generate ideas, but always review and personalize the output to
+            ensure it's accurate and sounds like you. Here's an interactive
+            prompt generator to get you started.
+          </p>
+        </div>
+        <div class="max-w-2xl mx-auto">
+          <div class="mb-4">
+            <label
+              for="prompt-select"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >Choose your goal:</label
+            >
+            <select
+              id="prompt-select"
+              class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="tailor">Tailor resume to a job description</option>
+              <option value="bullets">Improve experience bullet points</option>
+              <option value="skills">Identify relevant skills</option>
+              <option value="objective">Write a compelling objective</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Your AI Prompt (copy and paste this into your AI tool):</label
+            >
+            <div
+              id="prompt-output"
+              class="p-4 bg-gray-100 rounded-md text-gray-800 font-mono text-sm whitespace-pre-wrap relative"
+            >
+              <button
+                onclick="copyPrompt()"
+                class="absolute top-2 right-2 bg-gray-300 hover:bg-gray-400 text-gray-800 text-xs font-bold py-1 px-2 rounded"
+              >
+                Copy
+              </button>
+              <span id="prompt-text"></span>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">
+              Remember to replace [Your Resume] and [Job Description] with your
+              actual information before using the prompt.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-20">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center">
+        <p>You now have the tools to build a powerful resume. Good luck!</p>
+      </div>
+    </footer>
+
+    <!-- Modal Structure -->
+    <div id="infoModal" class="modal" onclick="this.style.display='none'">
+      <div
+        class="modal-content bg-white rounded-lg shadow-xl max-w-lg mx-auto mt-20 p-6"
+        onclick="event.stopPropagation()"
+      >
+        <div class="flex justify-between items-center border-b pb-3 mb-4">
+          <h3 id="modalTitle" class="text-xl font-bold"></h3>
+          <button
+            onclick="closeModal()"
+            class="text-gray-500 hover:text-gray-800"
+          >
+            &times;
+          </button>
+        </div>
+        <div id="modalBody" class="text-gray-700"></div>
+      </div>
+    </div>
+
+    <script>
+      const modalData = {
+        bad_header: {
+          title: "❌ Header Mistakes",
+          body: `<p class="mb-2"><strong>Full Street Address:</strong> Unnecessary for initial applications and poses a security risk. City and State/Country is enough.</p>
+                   <p class="mb-2"><strong>Unprofessional Email:</strong> An email from an old provider like 'aol.com' can make you seem dated. Use a modern, professional address (e.g., firstname.lastname@email.com).</p>
+                   <p><strong>Photo:</strong> Including a photo is not standard practice in many regions, can introduce bias, and often causes errors with Applicant Tracking Systems (ATS).</p>`,
+        },
+        good_header: {
+          title: "✅ Effective Header",
+          body: `<p class="mb-2"><strong>Clean & Concise:</strong> Only essential information is included: City, phone, professional email.</p>
+                   <p><strong>LinkedIn Profile:</strong> Including a link to a complete and professional LinkedIn profile is a modern standard and gives recruiters another way to learn about you.</p>
+                   <p><strong>No Photo/Full Address:</strong> This format is professional, secure, and ATS-friendly.</p>`,
+        },
+        bad_objective: {
+          title: "❌ Vague Objective",
+          body: `<p>This statement is generic and tells the recruiter nothing specific about you or why you want <em>this</em> job. Phrases like "hardworking professional" and "utilize my skills" are clichés that add no value.</p>`,
+        },
+        good_objective: {
+          title: "✅ Tailored Objective",
+          body: `<p class="mb-2"><strong>Specific:</strong> It names the target role ("Marketing Associate") and company ("Innovate Corp").</p>
+                   <p><strong>Value-Oriented:</strong> It highlights specific, relevant skills from the PGDM ("market research, data analysis, digital campaign management") and states the goal is to "drive brand growth."</p>
+                   <p><strong>Keyword-Rich:</strong> It uses language likely found in the job description, helping it pass an ATS scan.</p>`,
+        },
+        bad_experience: {
+          title: "❌ Duty-Focused Experience",
+          body: `<p class="mb-2"><strong>Lists Duties, Not Achievements:</strong> "Responsible for" and "Handled" describe tasks, not impact. What was the result of your work?</p>
+                   <p class="mb-2"><strong>No Metrics:</strong> There are no numbers or data to show how well you performed these duties.</p>
+                   <p><strong>Unprofessional Language:</strong> Using "I" is not standard for resume bullet points.</p>`,
+        },
+        good_experience: {
+          title: "✅ Achievement-Oriented Experience",
+          body: `<p class="mb-2"><strong>Starts with Action Verbs:</strong> Each bullet begins with a strong verb like "Analyzed," "Assisted," or "Developed."</p>
+                   <p><strong>Quantifies Results:</strong> It uses metrics to show impact ("15% increase in engagement," "25% open rate, 5% above average"). This proves your value.</p>
+                   <p><strong>Shows Contribution:</strong> It connects actions to business outcomes ("contributing to a report that informed the Q3 marketing plan").</p>`,
+        },
+        bad_education: {
+          title: "❌ Incomplete Education Section",
+          body: `<p class="mb-2"><strong>Too Vague:</strong> "University" is not specific. Always list the full name of your institution.</p>
+                   <p><strong>Missing Key Details:</strong> There's no degree name, major, graduation date, or GPA. For a fresher, these are critical details.</p>
+                   <p><strong>Includes High School:</strong> Once you are in higher education, high school information is no longer relevant.</p>`,
+        },
+        good_education: {
+          title: "✅ Detailed Education Section",
+          body: `<p class="mb-2"><strong>Prominent & Detailed:</strong> As a recent graduate, this section is key. It clearly lists the degree (PGDM), specialization, university, and expected graduation date.</p>
+                   <p><strong>Highlights Achievements:</strong> Including a strong GPA and honors like the Dean's List immediately signals high performance.</p>
+                   <p><strong>Shows Relevance:</strong> Listing "Relevant Coursework" connects your academic learning directly to the requirements of the job.</p>`,
+        },
+        bad_skills: {
+          title: "❌ Generic Skills List",
+          body: `<p>This list is too generic. "Teamwork" and "Problem Solving" are soft skills that are better demonstrated through your experience bullet points. "Microsoft Word" is a basic skill that is largely assumed.</p>`,
+        },
+        good_skills: {
+          title: "✅ Specific & Categorized Skills",
+          body: `<p class="mb-2"><strong>Categorized for Clarity:</strong> Breaking skills into "Technical," "Languages," and "Soft Skills" makes the section easy to scan.</p>
+                   <p><strong>Specific & Relevant:</strong> It lists specific software and tools (Google Analytics, HubSpot) that are valuable for a marketing role.</p>
+                   <p><strong>Shows Proficiency:</strong> It specifies the level of proficiency for languages, which is helpful for recruiters.</p>`,
+        },
+      };
+
+      function showModal(id) {
+        const data = modalData[id];
+        if (data) {
+          document.getElementById("modalTitle").innerText = data.title;
+          document.getElementById("modalBody").innerHTML = data.body;
+          document.getElementById("infoModal").style.display = "flex";
+        }
+      }
+
+      function closeModal() {
+        document.getElementById("infoModal").style.display = "none";
+      }
+
+      window.onclick = function (event) {
+        const modal = document.getElementById("infoModal");
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      };
+
+      function scrollToSection(id) {
+        document.getElementById(id).scrollIntoView({ behavior: "smooth" });
+      }
+
+      // Tab functionality
+      function openTab(evt, tabName) {
+        let i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+          tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("nav-button");
+        const navButtons = document.querySelector("#deep-dive .flex");
+        for (i = 0; i < navButtons.children.length; i++) {
+          navButtons.children[i].classList.remove("active");
+        }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.classList.add("active");
+      }
+
+      // ATS Chart
+      const ctx = document.getElementById("atsChart").getContext("2d");
+      const atsChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["Rejected by ATS", "Seen by Recruiter"],
+          datasets: [
+            {
+              label: "% of Resumes",
+              data: [75, 25],
+              backgroundColor: ["#D9534F", "#4A934A"],
+              borderColor: ["#FFFFFF"],
+              borderWidth: 4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "70%",
+          plugins: {
+            legend: {
+              position: "bottom",
+            },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  return `${context.label}: ${context.raw}%`;
+                },
+              },
+            },
+          },
+        },
+      });
+
+      // AI Prompt Generator
+      const prompts = {
+        tailor: `Act as an expert resume writer for a recent PGDM graduate. Update my resume, provided below, to be perfectly tailored for the target job description, also provided below. Focus on aligning my experience and skills with the job's requirements and incorporate relevant keywords to ensure it is ATS-friendly.
+
+[Paste Your Resume Here]
+
+[Paste Job Description Here]`,
+        bullets: `Rewrite the following experience bullet points from my resume to be more achievement-oriented. Use the STAR method (Situation, Task, Action, Result) and quantify the impact with metrics where possible. Ensure the language is aligned with the provided job description.
+
+My current bullet points:
+- [Paste your bullet points here]
+
+Target Job Description:
+- [Paste Job Description Here]`,
+        skills: `Based on my resume and the target job description below, identify the top 10 most relevant skills I should highlight. Categorize them into "Technical Skills," "Soft Skills," and "Marketing Tools."
+
+My Resume:
+[Paste Your Resume Here]
+
+Job Description:
+[Paste Job Description Here]`,
+        objective: `Write a compelling and tailored 2-3 sentence resume objective for a recent PGDM graduate. I am applying for the [Your Target Role] position at [Target Company Name]. My key strengths are [List 2-3 key skills, e.g., data analysis, digital marketing, project management].
+
+My Resume for context:
+[Paste Your Resume Here]`,
+      };
+
+      const promptSelect = document.getElementById("prompt-select");
+      const promptTextElem = document.getElementById("prompt-text");
+
+      function updatePrompt() {
+        promptTextElem.textContent = prompts[promptSelect.value];
+      }
+
+      function copyPrompt() {
+        navigator.clipboard
+          .writeText(promptTextElem.textContent)
+          .then(() => {
+            alert("Prompt copied to clipboard!");
+          })
+          .catch((err) => {
+            console.error("Failed to copy: ", err);
+          });
+      }
+
+      promptSelect.addEventListener("change", updatePrompt);
+      // Initial call
+      updatePrompt();
+    </script>
+  </body>
+</html>
